@@ -8,30 +8,167 @@
 	<h1>PE Tracker</h1>
 	<% tasks.forEach(function(r) {%>
 		<button id='<%= r.id %>'
-			onClick='javascript:logTask(<%= r.id %>);'><%= r.name %></button>
+			onClick='javascript:startLoggingTasks(<%= r.id %>);'><%= r.name %></button>
+			<br>
 	<% }); %>
+	<br>
+	<button id='stop' onclick="javascript:stopLoggingTasks();">Stop</button>
+	<div id='observations'></div>
 	<script>
 		let currentTaskId = null;
+		let currentTaskStart = null;
+		let currentTaskEnd = null;
+		let isInitialClick = true;
+		let taskDuration = null;
+		let orgBackgroundColor = "#e9e9ed";
+		let documentOutput = document.getElementById("observations");
+		
+		const formatDuration = function(durationInMs) {
+			console.log(durationInMs);
+			// Declare local variables
+			let formatedString = "'+";
+			let hoursInMs = 3.6e+6;
+			let minutesInMs = 60000;
+			let secondsInMs = 1000;
 
-		const logTask = async function(id) {
-			const response = await fetch('/log', {
-						method: 'POST',
-						headers: {
-									'Accept': 'application/json',
-									'Content-Type': 'application/json'
-								},
-						body: JSON.stringify({
-									users_id: -1,
-									students_id: -1,
-									tasks_id: id,
-									duration: "'+00:00:01'" 
-								})
-				});
-					const result = await response.json();
-					console.log(result);
-					
-					currentTaskId = id; 
-			};	
+			// Determine if there are hours to be formatted
+			if (durationInMs >= hoursInMs) {
+				// Calculate number of horus
+				var hours = Math.floor(durationInMs/hoursInMs);
+
+				// Remove hours to keep futher calculations accurate
+				durationInMs -= hours * hoursInMs;
+
+				// Format hours if single digit
+				if (hours < 10) {
+					hours = "0" + hours;
+				}
+
+				// Final formatting for hours
+				formatedString += hours + ":";
+				
+			} else {
+
+				// No hours: Empty format
+				formatedString += "00:";
+
+			}
+
+			// Determine if there are minutes to be formatted
+			if (durationInMs >= minutesInMs) {
+				// Calculate number of minutes
+				var minutes = Math.floor(durationInMs/minutesInMs);
+
+				// Remove minutes to keep futher calculations accurate
+				durationInMs -= minutes * minutesInMs;
+
+				// Format minutes if single digit
+				if (minutes < 10) {
+					minutes = "0" + minutes;
+				}
+
+				// Final formatting for minutes
+				formatedString += minutes + ":";
+			
+			} else {
+
+				// No minutes: Empty format
+				formatedString += "00:";
+			}
+
+			// Determine if there are seconds to be formatted
+			if (durationInMs >= secondsInMs) {
+				// Calculate number of seconds
+				var seconds = Math.floor(durationInMs/secondsInMs);
+
+				// Format seconds if single digit
+				if (seconds < 10) {
+					seconds = "0" + seconds;
+				}
+				
+				// Final formatting for seconds
+				formatedString += seconds;
+
+			} else {
+				// No seconds: Empty format
+				formatedString += "00";
+			}
+
+			return formatedString + "'";
+		};
+
+		const displayOutput = function(textToDisplay) {
+			// Create new element and attach output
+			let newDiv = document.createElement('div');
+			let newPara = document.createElement('p');
+			let tn = document.createTextNode(textToDisplay);
+			newPara.appendChild(tn);
+			newDiv.appendChild(newPara);
+			documentOutput.appendChild(newDiv);
+		};
+
+		const startLoggingTasks = function(id) {
+			// Local Variabes
+			var newButton = document.getElementById(id);
+
+			// Determien if this button has been clicked before
+			if (isInitialClick) {
+				// Store intial click time
+				currentTaskStart = Date.now();
+
+				// Style selected button
+				newButton.style.backgroundColor = "green";
+
+				// Set task vars
+				isInitialClick = false;
+				currentTaskId = id;
+			
+				console.log("Tracking task " + currentTaskId + " starting at " + currentTaskStart);
+			} else if(currentTaskId != id) {
+
+				// Store current time
+				currentTaskEnd = Date.now();
+				console.log("Stopping task " + currentTaskId + " ending at " + currentTaskEnd);
+
+				// Find and reset old button style
+				document.getElementById(currentTaskId).style.backgroundColor = orgBackgroundColor;
+
+				// Style new button
+				newButton.style.backgroundColor = "green";
+
+				// Calculate duration 
+				taskDuration = currentTaskEnd - currentTaskStart;
+				
+				// Display output
+				displayOutput("Task: " + currentTaskId + " Duration: " + formatDuration(taskDuration));
+
+				// Start new task
+				currentTaskStart = Date.now();
+				currentTaskId = id;
+				console.log("Tracking NEW task " + currentTaskId + " starting at " + currentTaskStart);
+			} 
+		};	
+
+		const stopLoggingTasks = function() {
+			// Store current time
+			currentTaskEnd = Date.now();
+
+			// Find and reset old button style
+			document.getElementById(currentTaskId).style.backgroundColor = orgBackgroundColor;
+
+			console.log("Stopping task " + currentTaskId + " ending at " + currentTaskEnd);
+			// Calculate duration 
+			taskDuration = currentTaskEnd - currentTaskStart;
+
+			// Set initial back to true
+			isInitialClick = true; 
+
+			// Display output
+			displayOutput("Task: " + currentTaskId + " Duration: " + formatDuration(taskDuration));
+
+			// Output task
+			console.log("Task duration in miliseconds" + taskDuration);
+		};
 	</script>
 </body>
 </html>
