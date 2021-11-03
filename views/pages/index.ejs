@@ -22,6 +22,25 @@
 		let orgBackgroundColor = "#e9e9ed";
 		let documentOutput = document.getElementById("observations");
 		
+		const insertIntoDB = async function(task_duration, task_id) {
+			console.log("From inserIntoDB" + task_duration);
+			const response = await fetch('/log', {
+						method: 'POST',
+						headers: {
+									'Accept': 'application/json',
+									'Content-Type': 'application/json'
+								},
+						body: JSON.stringify({
+									users_id: -1,
+									students_id: -1,
+									tasks_id: task_id,
+									duration: task_duration
+								})
+				});
+				const result = await response.json();
+				console.log(result);
+		};
+
 		const formatDuration = function(durationInMs) {
 			console.log(durationInMs);
 			// Declare local variables
