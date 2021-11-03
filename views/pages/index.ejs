@@ -13,13 +13,12 @@
 	<% }); %>
 	<br>
 	<button id='stop' onclick="javascript:stopLoggingTasks();">Stop</button>
-	<div id='observations'></div>
+	<div id="observations"></div>
 	<script>
 		let currentTaskId = null;
 		let currentTaskStart = null;
 		let currentTaskEnd = null;
 		let isInitialClick = true;
-		let taskDuration = null;
 		let orgBackgroundColor = "#e9e9ed";
 		let documentOutput = document.getElementById("observations");
 		
@@ -98,12 +97,22 @@
 		};
 
 		const displayOutput = function(textToDisplay) {
-			// Create new element and attach output
+			// Create div
 			let newDiv = document.createElement('div');
+
+			// Create paragraph
 			let newPara = document.createElement('p');
+
+			// Create text node
 			let tn = document.createTextNode(textToDisplay);
+
+			// Append text node to paragraph 
 			newPara.appendChild(tn);
+
+			// Append paragraph to div
 			newDiv.appendChild(newPara);
+
+			// Append div to div
 			documentOutput.appendChild(newDiv);
 		};
 
@@ -130,17 +139,21 @@
 				currentTaskEnd = Date.now();
 				console.log("Stopping task " + currentTaskId + " ending at " + currentTaskEnd);
 
-				// Find and reset old button style
-				document.getElementById(currentTaskId).style.backgroundColor = orgBackgroundColor;
+				// Reset old button style
+				var oldButton = document.getElementById(currentTaskId);
+				oldButton.style.backgroundColor = orgBackgroundColor;
 
 				// Style new button
 				newButton.style.backgroundColor = "green";
 
 				// Calculate duration 
-				taskDuration = currentTaskEnd - currentTaskStart;
-				
+				var taskDuration = currentTaskEnd - currentTaskStart;
+
+				// Store task
+				insertIntoDB(formatDuration(taskDuration), currentTaskId);
+
 				// Display output
-				displayOutput("Task: " + currentTaskId + " Duration: " + formatDuration(taskDuration));
+				displayOutput("Task: " + currentTaskId + " Duration: " + formatDuration(taskDuration));	
 
 				// Start new task
 				currentTaskStart = Date.now();
@@ -152,22 +165,21 @@
 		const stopLoggingTasks = function() {
 			// Store current time
 			currentTaskEnd = Date.now();
+				// Reset old button style
+				var oldButton = document.getElementById(currentTaskId);
+				oldButton.style.backgroundColor = orgBackgroundColor;
+				console.log("Stopping task " + currentTaskId + " ending at " + currentTaskEnd);
+				// Calculate duration 
+				var taskDuration = currentTaskEnd - currentTaskStart;
 
-			// Find and reset old button style
-			document.getElementById(currentTaskId).style.backgroundColor = orgBackgroundColor;
+				// Set initial back to true
+				isInitialClick = true; 
 
-			console.log("Stopping task " + currentTaskId + " ending at " + currentTaskEnd);
-			// Calculate duration 
-			taskDuration = currentTaskEnd - currentTaskStart;
+				// Store task
+				insertIntoDB(formatDuration(taskDuration), currentTaskId);
 
-			// Set initial back to true
-			isInitialClick = true; 
-
-			// Display output
-			displayOutput("Task: " + currentTaskId + " Duration: " + formatDuration(taskDuration));
-
-			// Output task
-			console.log("Task duration in miliseconds" + taskDuration);
+				// Display output
+				displayOutput("Task: " + currentTaskId + " Duration: " + formatDuration(taskDuration));	
 		};
 	</script>
 </body>
